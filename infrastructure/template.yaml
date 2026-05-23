@@ -1,0 +1,111 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: AWS Lambda Cost Experiment - On-Demand vs Provisioned Concurrency
+
+Parameters:
+  Runtime:
+    Type: String
+    Default: nodejs22.x
+    AllowedValues:
+      - nodejs22.x
+      - python3.13
+    Description: Lambda runtime to use
+  
+  ProvisionedConcurrency:
+    Type: Number
+    Default: 5
+    Description: Number of provisioned concurrent executions (only for provisioned stack)
+  
+  EnableProvisionedConcurrency:
+    Type: String
+    Default: 'false'
+    AllowedValues:
+      - 'true'
+      - 'false'
+    Description: Whether to enable provisioned concurrency
+
+Conditions:
+  UseNodeJS: !Equals [!Ref Runtime, nodejs22.x]
+  UsePython: !Equals [!Ref Runtime, python3.13]
+  EnableProvisioned: !Equals [!Ref EnableProvisionedConcurrency, 'true']
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 512
+    Architectures:
+      - x86_64
+    Environment:
+      Variables:
+        EXPERIMENT_NAME: cost-files-01
+
+Resources:
+  CostTestFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub 'cost-files-test-${AWS::StackName}'
+      Handler: !If
+        - UseNodeJS
+        - index.handler
+        - lambda_function.lambda_handler
+      Runtime: !Ref Runtime
+      CodeUri: !If
+        - UseNodeJS
+        - ../functions/nodejs/
+        - ../functions/python/
+      Tags:
+        Project: cost-files-01
+        Function: !If [EnableProvisioned, provisioned, ondemand]
+        Experiment: lambda-cost-comparison
+      FunctionUrlConfig:
+        AuthType: NONE
+        Cors:
+          AllowOrigins:
+            - '*'
+          AllowMethods:
+            - GET
+            - POST
+          AllowHeaders:
+            - '*'
+  
+  CostTestFunctionVersion:
+    Type: AWS::Lambda::Version
+    Properties:
+      FunctionName: !Ref CostTestFunction
+      Description: Version for provisioned concurrency
+  
+  CostTestFunctionAlias:
+    Type: AWS::Lambda::Alias
+    Condition: EnableProvisioned
+    Properties:
+      FunctionName: !Ref CostTestFunction
+      FunctionVersion: !GetAtt CostTestFunctionVersion.Version
+      Name: live
+      ProvisionedConcurrencyConfig:
+        ProvisionedConcurrentExecutions: !Ref ProvisionedConcurrency
+
+Outputs:
+  FunctionName:
+    Description: Lambda Function Name
+    Value: !Ref CostTestFunction
+    Export:
+      Name: !Sub '${AWS::StackName}-FunctionName'
+  
+  FunctionArn:
+    Description: Lambda Function ARN
+    Value: !GetAtt CostTestFunction.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-FunctionArn'
+  
+  FunctionUrl:
+    Description: Lambda Function URL
+    Value: !GetAtt CostTestFunctionUrl.FunctionUrl
+    Export:
+      Name: !Sub '${AWS::StackName}-FunctionUrl'
+  
+  AliasArn:
+    Condition: EnableProvisioned
+    Description: Lambda Alias ARN (with provisioned concurrency)
+    Value: !Ref CostTestFunctionAlias
+    Export:
+      Name: !Sub '${AWS::StackName}-AliasArn'

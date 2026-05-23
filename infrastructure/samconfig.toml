@@ -1,0 +1,31 @@
+version = 0.1
+
+[default.global.parameters]
+stack_name = "lambda-cost-experiment"
+
+[default.build.parameters]
+cached = true
+parallel = true
+
+[default.deploy.parameters]
+capabilities = "CAPABILITY_IAM"
+confirm_changeset = false
+resolve_s3 = true
+region = "us-east-1"
+parameter_overrides = "Runtime=nodejs22.x EnableProvisionedConcurrency=false"
+
+[ondemand.deploy.parameters]
+stack_name = "lambda-cost-ondemand"
+capabilities = "CAPABILITY_IAM"
+confirm_changeset = false
+resolve_s3 = true
+region = "us-east-1"
+parameter_overrides = "Runtime=nodejs22.x EnableProvisionedConcurrency=false"
+
+[provisioned.deploy.parameters]
+stack_name = "lambda-cost-provisioned"
+capabilities = "CAPABILITY_IAM"
+confirm_changeset = false
+resolve_s3 = true
+region = "us-east-1"
+parameter_overrides = "Runtime=nodejs22.x EnableProvisionedConcurrency=true ProvisionedConcurrency=5"

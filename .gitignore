@@ -1,0 +1,39 @@
+# Results and analysis
+results/
+analysis/
+.config/
+
+# SAM build artifacts
+.aws-sam/
+infrastructure/.aws-sam/
+
+# Node.js
+node_modules/
+package-lock.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Environment variables
+.env
+.env.local
