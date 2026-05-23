@@ -54,9 +54,13 @@ for i in $(seq 1 $COUNT); do
     # Make the request and capture response with timing
     RESPONSE=$(curl -s -w "\n%{http_code}|%{time_total}" "$URL" 2>/dev/null || echo "ERROR|0")
     
-    HTTP_CODE=$(echo "$RESPONSE" | tail -n 1 | cut -d'|' -f1)
-    DURATION=$(echo "$RESPONSE" | tail -n 1 | cut -d'|' -f2)
-    BODY=$(echo "$RESPONSE" | head -n -1)
+    # Extract last line (status and timing)
+    LAST_LINE=$(echo "$RESPONSE" | tail -n 1)
+    HTTP_CODE=$(echo "$LAST_LINE" | cut -d'|' -f1)
+    DURATION=$(echo "$LAST_LINE" | cut -d'|' -f2)
+    
+    # Extract body (all lines except last)
+    BODY=$(echo "$RESPONSE" | sed '$d')
     
     # Parse response body for cold start info
     COLD_START="unknown"

@@ -84,9 +84,9 @@ echo "$PROVISIONED_URL"
 echo ""
 
 # Save URLs to file for scripts
-cd "$(dirname "$0")/.."
-mkdir -p .config
-cat > .config/function-urls.env << EOF
+PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+mkdir -p "$PROJECT_ROOT/.config"
+cat > "$PROJECT_ROOT/.config/function-urls.env" << EOF
 ONDEMAND_URL=$ONDEMAND_URL
 PROVISIONED_URL=$PROVISIONED_URL
 REGION=$REGION
